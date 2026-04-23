@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Database, Network, Shield,
-  CheckCircle2, Circle, Loader2, ArrowRight,
 } from 'lucide-react';
-import { taskFlow, dataItems } from '../data/mockData';
+import { dataItems, projects, agents, skills } from '../data/mockData';
 
 interface RightPanelProps {
   activeView: string;
@@ -18,53 +17,6 @@ const bottomTabs: { key: BottomTabKey; label: string; icon: React.ComponentType<
   { key: 'file', label: '文件', icon: Database },
   { key: 'graph', label: '图谱', icon: Network },
 ];
-
-// 横向任务流组件
-function TaskFlowHorizontal() {
-  return (
-    <div className="h-full flex flex-col px-4 py-2.5">
-      <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2 shrink-0">任务工作流</h3>
-      <div className="flex-1 flex items-center justify-center min-h-0">
-        <div className="flex items-center gap-1.5 w-full overflow-x-auto pb-1">
-          {taskFlow.map((step, i) => {
-            const isLast = i === taskFlow.length - 1;
-            return (
-              <div key={i} className="flex items-center gap-1.5 shrink-0">
-                <div className="flex flex-col items-center min-w-[80px]">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-1 ${
-                    step.status === 'completed'
-                      ? 'bg-success-subtle border-success text-success'
-                      : step.status === 'in-progress'
-                      ? 'bg-warning-subtle border-warning text-warning'
-                      : 'bg-bg border-border text-text-muted'
-                  }`}>
-                    {step.status === 'completed' && <CheckCircle2 className="w-4 h-4" strokeWidth={2} />}
-                    {step.status === 'in-progress' && <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />}
-                    {step.status === 'pending' && <Circle className="w-4 h-4" strokeWidth={2} />}
-                  </div>
-                  <span className={`text-[11px] font-medium text-center leading-tight ${
-                    step.status === 'completed' ? 'text-success' :
-                    step.status === 'in-progress' ? 'text-warning' : 'text-text-muted'
-                  }`}>
-                    {step.name}
-                  </span>
-                  <span className="text-[10px] text-text-muted mt-0.5 text-center leading-tight">{step.agent}</span>
-                </div>
-                {!isLast && (
-                  <div className="flex flex-col items-center px-0.5">
-                    <ArrowRight className={`w-3.5 h-3.5 shrink-0 ${
-                      step.status === 'completed' ? 'text-success/40' : 'text-border'
-                    }`} strokeWidth={1.5} />
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // 数据 Tab：上传文件 + 产出
 function DataPanel() {
@@ -119,41 +71,175 @@ function DataPanel() {
   );
 }
 
-// 图谱 Tab：项目维度关系
-function GraphPanel() {
+// 图谱 Tab：迷你 Canvas 力导向图
+function GraphPanel({ projectId }: { projectId: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const project = projects.find(p => p.id === projectId);
+    const relatedAgents = agents.filter(a => a.workLine === project?.name);
+    const relatedSkills = skills.filter(s => relatedAgents.some(a => a.mountedSkills.includes(s.id)));
+    const insights = ['营收对比分析', '消费者业务下滑 5%', '海外市场增长 34%'];
+
+    const nodeColors: Record<string, string> = {
+      project: '#1e3a5f',
+      agent: '#0d9488',
+      skill: '#7c3aed',
+      insight: '#d97706',
+    };
+
+    const nodes: Array<{ id: string; label: string; type: string; angle: number; dist: number; r: number; phase: number }> = [
+      { id: 'center', label: project?.name || '项目', type: 'project', angle: 0, dist: 0, r: 10, phase: Math.random() * Math.PI * 2 },
+      ...relatedAgents.map((a, i) => ({
+        id: a.id, label: a.name, type: 'agent',
+        angle: (i / Math.max(1, relatedAgents.length)) * Math.PI * 2,
+        dist: 0.35, r: 6, phase: Math.random() * Math.PI * 2,
+      })),
+      ...relatedSkills.map((s, i) => ({
+        id: s.id, label: s.name, type: 'skill',
+        angle: (i / Math.max(1, relatedSkills.length)) * Math.PI * 2 + 0.5,
+        dist: 0.58, r: 5, phase: Math.random() * Math.PI * 2,
+      })),
+      ...insights.map((t, i) => ({
+        id: `insight-${i}`, label: t, type: 'insight',
+        angle: (i / insights.length) * Math.PI * 2 + 2.5,
+        dist: 0.75, r: 5, phase: Math.random() * Math.PI * 2,
+      })),
+    ];
+
+    let W = 0, H = 0;
+    let hovered: typeof nodes[0] | null = null;
+    let animId = 0;
+
+    const resize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      W = rect.width;
+      H = rect.height;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+
+    const render = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const now = Date.now();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2;
+      const cy = H / 2;
+      const maxR = Math.min(W, H) * 0.42;
+
+      // 连线
+      ctx.strokeStyle = '#e4e4e7';
+      ctx.lineWidth = 0.8;
+      nodes.forEach(n => {
+        if (n.id === 'center') return;
+        const fx = Math.sin(now * 0.0003 + n.phase) * 1.5;
+        const fy = Math.cos(now * 0.0003 + n.phase) * 1.2;
+        const ax = cx + Math.cos(n.angle) * n.dist * maxR + fx;
+        const ay = cy + Math.sin(n.angle) * n.dist * maxR + fy;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(ax, ay);
+        ctx.stroke();
+      });
+
+      // 节点
+      nodes.forEach(n => {
+        const fx = Math.sin(now * 0.0003 + n.phase) * 1.5;
+        const fy = Math.cos(now * 0.0003 + n.phase) * 1.2;
+        const rx = n.id === 'center' ? cx : cx + Math.cos(n.angle) * n.dist * maxR + fx;
+        const ry = n.id === 'center' ? cy : cy + Math.sin(n.angle) * n.dist * maxR + fy;
+        const isHover = hovered?.id === n.id;
+        const color = nodeColors[n.type] || '#52525b';
+
+        ctx.shadowColor = isHover ? color + '50' : 'rgba(0,0,0,0.05)';
+        ctx.shadowBlur = isHover ? 10 : 4;
+        ctx.beginPath();
+        ctx.arc(rx, ry, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = isHover ? color : color + 'cc';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        if (n.id !== 'center') {
+          ctx.fillStyle = isHover ? color : '#3f3f46';
+          ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+          const textX = rx + n.r + 5;
+          const textY = ry + 3;
+          if (textX + ctx.measureText(n.label).width < W - 4) {
+            ctx.fillText(n.label, textX, textY);
+          }
+        }
+      });
+
+      animId = requestAnimationFrame(render);
+    };
+    animId = requestAnimationFrame(render);
+
+    const onMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const cx = W / 2;
+      const cy = H / 2;
+      const maxR = Math.min(W, H) * 0.42;
+      const now = Date.now();
+      let hit: typeof nodes[0] | null = null;
+      for (const n of nodes) {
+        const fx = Math.sin(now * 0.0003 + n.phase) * 1.5;
+        const fy = Math.cos(now * 0.0003 + n.phase) * 1.2;
+        const rx = n.id === 'center' ? cx : cx + Math.cos(n.angle) * n.dist * maxR + fx;
+        const ry = n.id === 'center' ? cy : cy + Math.sin(n.angle) * n.dist * maxR + fy;
+        if ((mx - rx) ** 2 + (my - ry) ** 2 < (n.r + 6) ** 2) {
+          hit = n;
+          break;
+        }
+      }
+      hovered = hit;
+      canvas.style.cursor = hit ? 'pointer' : 'default';
+
+      const tip = tooltipRef.current;
+      if (tip) {
+        if (hit) {
+          tip.innerHTML = `<div class="text-[11px] font-semibold text-text">${hit.label}</div><div class="text-[10px] text-text-muted mt-0.5">${hit.type === 'project' ? '项目' : hit.type === 'agent' ? 'Agent' : hit.type === 'skill' ? 'Skill' : '洞察'}</div>`;
+          tip.style.display = 'block';
+          let tx = mx + 10;
+          let ty = my + 10;
+          if (tx + 140 > W) tx = mx - 150;
+          if (ty + 50 > H) ty = my - 60;
+          tip.style.left = tx + 'px';
+          tip.style.top = ty + 'px';
+        } else {
+          tip.style.display = 'none';
+        }
+      }
+    };
+
+    canvas.addEventListener('mousemove', onMove);
+    return () => {
+      cancelAnimationFrame(animId);
+      ro.disconnect();
+      canvas.removeEventListener('mousemove', onMove);
+    };
+  }, [projectId]);
+
   return (
-    <div className="h-full flex flex-col px-4 py-3 overflow-y-auto">
-      <h4 className="text-[11px] font-semibold text-text-muted mb-2">项目关系图谱</h4>
-      <div className="space-y-2">
-        <div className="bg-bg border border-border rounded-xl p-3">
-          <div className="text-xs font-medium text-text mb-1">中心节点</div>
-          <div className="text-[11px] text-text-secondary">Q3 财报分析</div>
-        </div>
-        <div className="bg-bg border border-border rounded-xl p-3">
-          <div className="text-xs font-medium text-text mb-1.5">关联 Agent</div>
-          <div className="flex flex-wrap gap-1.5">
-            {['知识工程', '数据治理', '图表生成'].map((a) => (
-              <span key={a} className="text-[11px] px-2 py-0.5 bg-agent-host-subtle text-agent-host rounded-md">{a}</span>
-            ))}
-          </div>
-        </div>
-        <div className="bg-bg border border-border rounded-xl p-3">
-          <div className="text-xs font-medium text-text mb-1.5">关联 Skill</div>
-          <div className="flex flex-wrap gap-1.5">
-            {['SQL执行器', '企业搜索', 'PDF解析'].map((s) => (
-              <span key={s} className="text-[11px] px-2 py-0.5 bg-skill-subtle text-skill rounded-md">{s}</span>
-            ))}
-          </div>
-        </div>
-        <div className="bg-bg border border-border rounded-xl p-3">
-          <div className="text-xs font-medium text-text mb-1.5">关键洞察</div>
-          <div className="space-y-1 text-[11px] text-text-secondary">
-            <div>• 营收对比分析</div>
-            <div>• 消费者业务下滑 5%</div>
-            <div>• 海外市场增长 34%</div>
-          </div>
-        </div>
-      </div>
+    <div ref={containerRef} className="h-full w-full relative">
+      <canvas ref={canvasRef} className="w-full h-full block" />
+      <div ref={tooltipRef} className="absolute hidden z-20 pointer-events-none bg-white/90 backdrop-blur-sm rounded-lg border border-border/60 shadow-sm p-2 min-w-[100px]" />
     </div>
   );
 }
@@ -232,19 +318,14 @@ function DataDetailPanel({ selectedId }: { selectedId: string | null }) {
 }
 
 export default function RightPanel({ activeView, activeProjectId, selectedDataItemId }: RightPanelProps) {
-  const [bottomTab, setBottomTab] = useState<BottomTabKey>('audit');
+  const [bottomTab, setBottomTab] = useState<BottomTabKey>('graph');
 
   const isProjectView = activeView === 'project' && activeProjectId;
   if (!isProjectView) return null;
 
   return (
     <div className="h-full w-full flex flex-col bg-surface/80 backdrop-blur-md border-l border-border">
-      {/* 上半部分：横向任务流 */}
-      <div className="h-[28%] shrink-0 border-b border-border">
-        <TaskFlowHorizontal />
-      </div>
-
-      {/* 下半部分：选项卡切换 */}
+      {/* 选项卡切换 */}
       <div className="flex-1 min-h-0 flex flex-col">
         {/* Tab Bar */}
         <div className="flex items-center border-b border-border shrink-0 bg-surface/50">
@@ -270,7 +351,7 @@ export default function RightPanel({ activeView, activeProjectId, selectedDataIt
         {/* Tab Content */}
         <div className="flex-1 min-h-0 overflow-hidden">
           {bottomTab === 'file' && <DataPanel />}
-          {bottomTab === 'graph' && <GraphPanel />}
+          {bottomTab === 'graph' && <GraphPanel projectId={activeProjectId} />}
           {bottomTab === 'audit' && <DataDetailPanel selectedId={selectedDataItemId} />}
         </div>
       </div>

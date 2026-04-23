@@ -65,7 +65,7 @@ function MessageBubble({ msg, selectedDataItemId, onSelectDataItem }: { msg: Cha
   // 用户消息
   if (isHuman) {
     return (
-      <div className="flex flex-col items-end">
+      <div className="flex flex-col items-end" data-message-id={msg.id}>
         <div className="flex items-center gap-2 mb-1">
           <span className="text-[11px] text-text-muted/60">{msg.timestamp}</span>
           <span className="text-[11px] text-text">{msg.senderName}</span>
@@ -92,7 +92,7 @@ function MessageBubble({ msg, selectedDataItemId, onSelectDataItem }: { msg: Cha
 
   // BizAgent / Agent / Skill 消息
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3" data-message-id={msg.id}>
       {isHost ? <BotAvatar /> : (
         <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] shrink-0">
           {msg.senderName.charAt(0)}
@@ -168,7 +168,7 @@ export default function ProjectChat({ chatName, messages, rightPanelCollapsed, o
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-5 py-4">
+      <div className="flex-1 overflow-y-auto pl-5 pr-10 py-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <span className="text-[11px] text-text-muted/50 bg-gray-50 rounded-full px-3 py-1">No more messages</span>
@@ -212,10 +212,6 @@ export default function ProjectChat({ chatName, messages, rightPanelCollapsed, o
             <div className="flex items-center gap-2">
               <button className="w-7 h-7 flex items-center justify-center hover:bg-gray-200 rounded-lg transition-colors text-text-muted">
                 <span className="text-sm leading-none">+</span>
-              </button>
-              <button className="flex items-center gap-1 text-[11px] text-text-muted hover:text-text transition-colors">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                <span>project</span>
               </button>
             </div>
             <div className="flex items-center gap-2">

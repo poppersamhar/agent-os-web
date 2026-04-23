@@ -1,7 +1,14 @@
 import {
-  Zap, Bot, Layers, CheckCircle2, Activity,
+  Zap, Bot, Layers, CheckCircle2, Activity, BookOpen, Shield, Code,
 } from 'lucide-react';
 import { agents, workLines } from '../data/mockData';
+
+const agentIconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  knowledge: BookOpen,
+  governance: Shield,
+  analysis: BookOpen,
+  code: Code,
+};
 
 // 模拟 Token 数据
 const tokenData = agents.map(a => ({
@@ -113,7 +120,12 @@ export default function Dashboard() {
                   <tr key={agent.id} className="border-b border-border-light hover:bg-bg transition-colors rounded-lg">
                     <td className="py-3 px-2 rounded-l-lg">
                       <div className="flex items-center gap-2.5">
-                        <span className="text-base">{agent.avatar}</span>
+                        <div className="w-7 h-7 rounded-full border border-primary/30 flex items-center justify-center shrink-0">
+                          {(() => {
+                            const Icon = agentIconMap[agent.domain] || Bot;
+                            return <Icon className="w-3.5 h-3.5 text-primary" strokeWidth={1.5} />;
+                          })()}
+                        </div>
                         <span className="font-medium text-text">{agent.name}</span>
                       </div>
                     </td>

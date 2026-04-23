@@ -18,6 +18,12 @@ interface SidebarProps {
   onNavigate: (view: string, projectId?: string, chatId?: string | null) => void;
   onCreateProject: () => void;
   onCreateTask?: (projectId: string) => void;
+  onEditProject?: (projectId: string, name: string) => void;
+  onDeleteProject?: (projectId: string) => void;
+  onPinProject?: (projectId: string) => void;
+  onEditChat?: (projectId: string, chatId: string, name: string) => void;
+  onDeleteChat?: (projectId: string, chatId: string) => void;
+  onPinChat?: (projectId: string, chatId: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
 }
@@ -50,7 +56,10 @@ function ProjectIcon({ icon, collapsed, isActive }: { icon?: string; collapsed: 
 }
 
 function ProjectTree({
-  projects, activeView, activeProjectId, activeChatId, onNavigate, onCreateTask, collapsed,
+  projects, activeView, activeProjectId, activeChatId, onNavigate, onCreateTask,
+  onEditProject, onDeleteProject, onPinProject,
+  onEditChat, onDeleteChat, onPinChat,
+  collapsed,
 }: {
   projects: WorkLine[];
   activeView: string;
@@ -58,9 +67,29 @@ function ProjectTree({
   activeChatId: string | null;
   onNavigate: (view: string, projectId?: string, chatId?: string | null) => void;
   onCreateTask?: (projectId: string) => void;
+  onEditProject?: (projectId: string, name: string) => void;
+  onDeleteProject?: (projectId: string) => void;
+  onPinProject?: (projectId: string) => void;
+  onEditChat?: (projectId: string, chatId: string, name: string) => void;
+  onDeleteChat?: (projectId: string, chatId: string) => void;
+  onPinChat?: (projectId: string, chatId: string) => void;
   collapsed: boolean;
 }) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set(projects.map(p => p.id)));
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpenId(null);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
 
   const toggleExpand = (projectId: string) => {
     setExpandedIds(prev => {
@@ -127,9 +156,29 @@ function ProjectTree({
               >
                 <ProjectIcon icon={project.icon} collapsed={false} isActive={isActiveProject} />
                 <div className="min-w-0 flex-1">
-                  <div className={`text-[13px] font-medium truncate leading-snug ${isActiveProject ? 'text-primary-dark' : 'text-text'}`}>
-                    {project.name}
-                  </div>
+                  {editingId === `p-${project.id}` ? (
+                    <input
+                      autoFocus
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => {
+                        if (editValue.trim()) onEditProject?.(project.id, editValue.trim());
+                        setEditingId(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          if (editValue.trim()) onEditProject?.(project.id, editValue.trim());
+                          setEditingId(null);
+                        }
+                      }}
+                      className="text-[13px] bg-white border border-primary/30 rounded px-1.5 py-0.5 outline-none w-full"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <div className={`text-[13px] font-medium truncate leading-snug ${isActiveProject ? 'text-primary-dark' : 'text-text'}`}>
+                      {project.name}
+                    </div>
+                  )}
                 </div>
               </button>
 
@@ -147,12 +196,25 @@ function ProjectTree({
                     <Plus className="w-3 h-3" strokeWidth={2} />
                   </button>
                 )}
-                <button
-                  className="p-1 hover:bg-primary/10 rounded-md transition-colors text-text-muted hover:text-text"
-                  title="更多"
-                >
-                  <span className="text-[10px] font-bold leading-none">···</span>
-                </button>
+                <div className="relative" ref={menuOpenId === `p-${project.id}` ? menuRef : undefined}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpenId(menuOpenId === `p-${project.id}` ? null : `p-${project.id}`);
+                    }}
+                    className="p-1 hover:bg-primary/10 rounded-md transition-colors text-text-muted hover:text-text"
+                    title="更多"
+                  >
+                    <span className="text-[10px] font-bold leading-none">···</span>
+                  </button>
+                  {menuOpenId === `p-${project.id}` && (
+                    <div className="absolute right-0 top-full mt-1 w-28 bg-surface border border-border rounded-xl shadow-lg shadow-black/5 py-1 z-50">
+                      <button onClick={(e) => { e.stopPropagation(); onPinProject?.(project.id); setMenuOpenId(null); }} className="w-full text-left px-3 py-1.5 text-[11px] text-text hover:bg-bg transition-colors">置顶</button>
+                      <button onClick={(e) => { e.stopPropagation(); setEditingId(`p-${project.id}`); setEditValue(project.name); setMenuOpenId(null); }} className="w-full text-left px-3 py-1.5 text-[11px] text-text hover:bg-bg transition-colors">编辑</button>
+                      <button onClick={(e) => { e.stopPropagation(); onDeleteProject?.(project.id); setMenuOpenId(null); }} className="w-full text-left px-3 py-1.5 text-[11px] text-danger hover:bg-danger-subtle transition-colors">删除</button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {project.unread && (
@@ -165,19 +227,59 @@ function ProjectTree({
               <div className="ml-5 pl-3 border-l border-border-light mt-0.5 space-y-0.5">
                 {project.chats.map((chat) => {
                   const isActiveChat = activeView === 'project' && activeChatId === chat.id;
+                  const isEditing = editingId === `c-${chat.id}`;
                   return (
-                    <button
-                      key={chat.id}
-                      onClick={() => onNavigate('project', project.id, chat.id)}
-                      className={`w-full flex items-center gap-2 rounded-xl text-left transition-all duration-200 px-2.5 py-1.5 ${
-                        isActiveChat ? 'bg-primary-subtle/60' : 'hover:bg-primary/5'
-                      }`}
-                    >
-                      <MessageCircle className={`w-3 h-3 shrink-0 ${isActiveChat ? 'text-primary-dark' : 'text-text-muted'}`} strokeWidth={1.5} />
-                      <span className={`text-[12px] truncate ${isActiveChat ? 'text-primary-dark font-medium' : 'text-text-secondary'}`}>
-                        {chat.name}
-                      </span>
-                    </button>
+                    <div key={chat.id} className={`group flex items-center rounded-xl text-left transition-all duration-200 px-2.5 py-1.5 ${
+                      isActiveChat ? 'bg-primary-subtle/60' : 'hover:bg-primary/5'
+                    }`}>
+                      <button
+                        onClick={() => onNavigate('project', project.id, chat.id)}
+                        className="flex-1 flex items-center gap-2 text-left min-w-0"
+                      >
+                        <MessageCircle className={`w-3 h-3 shrink-0 ${isActiveChat ? 'text-primary-dark' : 'text-text-muted'}`} strokeWidth={1.5} />
+                        {isEditing ? (
+                          <input
+                            autoFocus
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={() => {
+                              if (editValue.trim()) onEditChat?.(project.id, chat.id, editValue.trim());
+                              setEditingId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (editValue.trim()) onEditChat?.(project.id, chat.id, editValue.trim());
+                                setEditingId(null);
+                              }
+                            }}
+                            className="text-[12px] bg-white border border-primary/30 rounded px-1.5 py-0.5 outline-none w-full"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span className={`text-[12px] truncate ${isActiveChat ? 'text-primary-dark font-medium' : 'text-text-secondary'}`}>
+                            {chat.name}
+                          </span>
+                        )}
+                      </button>
+                      <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuOpenId(menuOpenId === `c-${chat.id}` ? null : `c-${chat.id}`);
+                          }}
+                          className="p-0.5 hover:bg-primary/10 rounded transition-colors text-text-muted"
+                        >
+                          <span className="text-[8px] font-bold leading-none">···</span>
+                        </button>
+                        {menuOpenId === `c-${chat.id}` && (
+                          <div className="absolute right-0 top-full mt-1 w-28 bg-surface border border-border rounded-xl shadow-lg shadow-black/5 py-1 z-50">
+                            <button onClick={(e) => { e.stopPropagation(); onPinChat?.(project.id, chat.id); setMenuOpenId(null); }} className="w-full text-left px-3 py-1.5 text-[11px] text-text hover:bg-bg transition-colors">置顶</button>
+                            <button onClick={(e) => { e.stopPropagation(); setEditingId(`c-${chat.id}`); setEditValue(chat.name); setMenuOpenId(null); }} className="w-full text-left px-3 py-1.5 text-[11px] text-text hover:bg-bg transition-colors">编辑</button>
+                            <button onClick={(e) => { e.stopPropagation(); onDeleteChat?.(project.id, chat.id); setMenuOpenId(null); }} className="w-full text-left px-3 py-1.5 text-[11px] text-danger hover:bg-danger-subtle transition-colors">删除</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>

@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { projects, agents, skills } from '../data/mockData';
+import { useTheme } from '../contexts/ThemeContext';
 import type { ExcludeRect } from './DraggableChat';
 
 /* ─── Types ─── */
@@ -24,12 +25,28 @@ interface GraphNode {
   meta?: Record<string, string>;
 }
 
-const nodeColors: Record<NodeType, { fill: string; stroke: string; label: string }> = {
-  project:  { fill: '#1e3a5f', stroke: '#3b5998', label: '项目' },
-  agent:    { fill: '#0d9488', stroke: '#14b8a6', label: 'Agent' },
-  skill:    { fill: '#7c3aed', stroke: '#8b5cf6', label: 'Skill' },
-  file:     { fill: '#475569', stroke: '#64748b', label: '文件' },
-  insight:  { fill: '#d97706', stroke: '#f59e0b', label: '洞察' },
+const themeNodeColors: Record<string, Record<NodeType, { fill: string; stroke: string; label: string }>> = {
+  emerald: {
+    project:  { fill: '#065f46', stroke: '#10b981', label: '项目' },
+    agent:    { fill: '#00b894', stroke: '#34d399', label: 'Agent' },
+    skill:    { fill: '#7c3aed', stroke: '#a78bfa', label: 'Skill' },
+    file:     { fill: '#475569', stroke: '#94a3b8', label: '文件' },
+    insight:  { fill: '#d97706', stroke: '#fbbf24', label: '洞察' },
+  },
+  coral: {
+    project:  { fill: '#9a3412', stroke: '#f97316', label: '项目' },
+    agent:    { fill: '#e17055', stroke: '#fb923c', label: 'Agent' },
+    skill:    { fill: '#0984e3', stroke: '#60a5fa', label: 'Skill' },
+    file:     { fill: '#5d4037', stroke: '#a1887f', label: '文件' },
+    insight:  { fill: '#ca8a04', stroke: '#facc15', label: '洞察' },
+  },
+  azure: {
+    project:  { fill: '#1e3a5f', stroke: '#3b82f6', label: '项目' },
+    agent:    { fill: '#0984e3', stroke: '#60a5fa', label: 'Agent' },
+    skill:    { fill: '#8e44ad', stroke: '#c084fc', label: 'Skill' },
+    file:     { fill: '#475569', stroke: '#94a3b8', label: '文件' },
+    insight:  { fill: '#d97706', stroke: '#fbbf24', label: '洞察' },
+  },
 };
 
 interface GraphEdge {
@@ -115,6 +132,7 @@ export default function KnowledgeGraph({
   projectId: string;
   excludeRectRef?: React.RefObject<ExcludeRect | null>;
 }) {
+  const { themeColor } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number>(0);
@@ -123,6 +141,8 @@ export default function KnowledgeGraph({
   const hoveredNodeRef = useRef<GraphNode | null>(null);
   const prevExRef = useRef<{ cx: number; cy: number; active: boolean }>({ cx: 0, cy: 0, active: false });
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const themeColorRef = useRef(themeColor);
+  themeColorRef.current = themeColor;
 
   useEffect(() => {
     const { nodes, edges } = buildGraph(projectId);
@@ -343,8 +363,15 @@ export default function KnowledgeGraph({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
 
-      ctx.strokeStyle = '#d4d4d8';
-      ctx.lineWidth = 0.7;
+      const colors = themeNodeColors[themeColorRef.current] || themeNodeColors.emerald;
+      const edgeColor = themeColorRef.current === 'coral'
+        ? 'rgba(225,112,85,0.18)'
+        : themeColorRef.current === 'azure'
+          ? 'rgba(9,132,227,0.18)'
+          : 'rgba(0,184,148,0.18)';
+
+      ctx.strokeStyle = edgeColor;
+      ctx.lineWidth = 0.8;
       edges.forEach((e) => {
         const a = nodes.find((n) => n.id === e.source);
         const b = nodes.find((n) => n.id === e.target);
@@ -370,17 +397,30 @@ export default function KnowledgeGraph({
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 1.5;
 
+        const c = colors[n.type];
+        const isHover = hoveredNodeRef.current?.id === n.id;
+        const isDrag = draggedNodeRef.current?.id === n.id;
+
         ctx.beginPath();
         ctx.arc(rx, ry, n.radius, 0, Math.PI * 2);
-        if (hoveredNodeRef.current?.id === n.id) ctx.fillStyle = '#3b82f6';
-        else if (draggedNodeRef.current?.id === n.id) ctx.fillStyle = '#2563eb';
-        else ctx.fillStyle = '#52525b';
+        if (isHover) ctx.fillStyle = c.stroke;
+        else if (isDrag) ctx.fillStyle = c.fill;
+        else ctx.fillStyle = c.fill;
         ctx.fill();
+
+        // 悬停/拖拽时加外圈高亮
+        if (isHover || isDrag) {
+          ctx.beginPath();
+          ctx.arc(rx, ry, n.radius + 3, 0, Math.PI * 2);
+          ctx.strokeStyle = c.stroke + '60';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
 
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
 
-        ctx.fillStyle = hoveredNodeRef.current?.id === n.id ? '#3b82f6' : '#3f3f46';
+        ctx.fillStyle = isHover ? c.stroke : '#3f3f46';
         ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillText(n.label, rx + n.radius + 8, ry + 4);
       });
@@ -390,7 +430,7 @@ export default function KnowledgeGraph({
 
     animRef.current = requestAnimationFrame(render);
     return () => { cancelAnimationFrame(animRef.current); ro.disconnect(); };
-  }, [projectId, excludeRectRef]);
+  }, [projectId, excludeRectRef, themeColor]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -432,7 +472,7 @@ export default function KnowledgeGraph({
       const tip = tooltipRef.current;
       if (tip) {
         if (hit) {
-          const color = nodeColors[hit.type];
+          const color = (themeNodeColors[themeColorRef.current] || themeNodeColors.emerald)[hit.type];
           const metaRows = hit.meta
             ? Object.entries(hit.meta).map(([k, v]) => `<div class="flex justify-between gap-4"><span class="text-text-muted">${k}</span><span class="text-text font-medium">${v}</span></div>`).join('')
             : '';

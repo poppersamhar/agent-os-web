@@ -129,7 +129,7 @@ export const workLines: WorkLine[] = [
   {
     id: 'p1', name: '供应链金融风控平台', description: '基于大数据的供应商信用评估与应收账款风险监控体系', updatedAt: '刚刚', memberCount: 6, unread: true, status: 'active', icon: 'shield',
     chats: [
-      { id: 'c1', name: '主对话', projectId: 'p1', messages: [] },
+      { id: 'c1', name: '财报分析', projectId: 'p1', messages: [] },
       { id: 'c2', name: '供应商信用评估模型', projectId: 'p1', messages: [] },
       { id: 'c3', name: '应收账款风险预警', projectId: 'p1', messages: [] },
       { id: 'c4', name: '贷后监控日报', projectId: 'p1', messages: [] },
@@ -369,10 +369,168 @@ const chatMessages: ChatMessage[] = [
     timestamp: '10:06',
     mentions: ['samhar'],
   },
+  // ── 任务2：成本结构与毛利率分析 ──
+  {
+    id: 'm9',
+    role: 'human',
+    senderId: 'u1',
+    senderName: 'samhar',
+    content: '接着分析一下各业务线的成本结构和毛利率变化',
+    timestamp: '10:08',
+  },
+  {
+    id: 'm10',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '收到。@数据治理-质量检查 请提取成本数据并计算各业务线毛利率',
+    timestamp: '10:08',
+    mentions: ['数据治理-质量检查'],
+  },
+  {
+    id: 'm11',
+    role: 'agent',
+    senderId: 'a2',
+    senderName: '数据治理-质量检查',
+    content: '成本数据提取完成。Q3 各业务线毛利率：\n• 云服务：62%（+3pp）\n• 企业服务：58%（+1pp）\n• 消费者业务：41%（-4pp）\n• 海外市场：55%（+6pp）',
+    timestamp: '10:09',
+    status: 'sent',
+  },
+  {
+    id: 'm12',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '结论：海外市场毛利率提升最快（+6pp），消费者业务因促销投入加大导致毛利率下滑 4pp，建议控制折扣力度。',
+    timestamp: '10:10',
+  },
+  // ── 任务3：现金流趋势预测 ──
+  {
+    id: 'm13',
+    role: 'human',
+    senderId: 'u1',
+    senderName: 'samhar',
+    content: '基于当前数据，预测一下 Q4 的现金流趋势',
+    timestamp: '10:12',
+  },
+  {
+    id: 'm14',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '收到。@代码助手 请基于 Q3 回款和支出数据，用 Python 沙箱运行现金流预测模型',
+    timestamp: '10:12',
+    mentions: ['代码助手'],
+  },
+  {
+    id: 'm15',
+    role: 'agent',
+    senderId: 'a3',
+    senderName: '代码助手',
+    content: '正在运行现金流预测模型...\n输入：Q3 营收、回款周期、固定支出、季节性因子',
+    timestamp: '10:13',
+    status: 'sending',
+    metadata: {
+      toolCall: { name: 'Python沙箱', input: 'run_cashflow_forecast(q3_data)' },
+    },
+  },
+  {
+    id: 'm16',
+    role: 'agent',
+    senderId: 'a3',
+    senderName: '代码助手',
+    content: '预测完成。Q4 现金流预测（万元）：\n• 10月：2,100（回款集中）\n• 11月：1,650\n• 12月：1,880（年底冲量）\n\n整体 Q4 净流入预计 5,630，较 Q3 增长 12%。',
+    timestamp: '10:14',
+    status: 'sent',
+  },
+  {
+    id: 'm17',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '@samhar Q4 现金流整体健康，但 11 月有小幅回落，建议提前催收大客户应收账款。',
+    timestamp: '10:14',
+    mentions: ['samhar'],
+  },
+  // ── 任务4：客户分层与流失预警 ──
+  {
+    id: 'm18',
+    role: 'human',
+    senderId: 'u1',
+    senderName: 'samhar',
+    content: '再看看消费者业务下滑的原因，是不是客户流失了？',
+    timestamp: '10:16',
+  },
+  {
+    id: 'm19',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '收到。@知识工程-制度梳理 请提取客户活跃度数据，识别高流失风险客户群',
+    timestamp: '10:16',
+    mentions: ['知识工程-制度梳理'],
+  },
+  {
+    id: 'm20',
+    role: 'agent',
+    senderId: 'a1',
+    senderName: '知识工程-制度梳理',
+    content: '客户分层分析完成：\n• 高价值客户（Top 20%）：留存率 94%（+2pp）\n• 中价值客户：留存率 78%（-5pp）\n• 低价值客户：留存率 61%（-8pp）\n\n消费者业务下滑主因：中低价值客户流失加速，竞品促销影响明显。',
+    timestamp: '10:17',
+    status: 'sent',
+  },
+  {
+    id: 'm21',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '建议：针对中价值客户推出复购激励计划，对低价值客户降低获客成本投入。',
+    timestamp: '10:18',
+  },
+  // ── 任务5：下季度预算与目标设定 ──
+  {
+    id: 'm22',
+    role: 'human',
+    senderId: 'u1',
+    senderName: 'samhar',
+    content: '最后，基于以上分析，帮我草拟 Q4 的预算分配和增长目标',
+    timestamp: '10:20',
+  },
+  {
+    id: 'm23',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: '收到。我来整合前面四项分析结果，生成 Q4 预算建议：\n1. 按业务线分配预算\n2. 设定增长目标\n3. 配置监控指标\n\n@图表生成 请生成预算分配饼图',
+    timestamp: '10:20',
+    mentions: ['图表生成'],
+  },
+  {
+    id: 'm24',
+    role: 'skill',
+    senderId: 's4',
+    senderName: '图表生成',
+    content: '[图表渲染结果]\n已生成饼图：Q4 预算分配方案\n已生成仪表盘：关键指标监控视图',
+    timestamp: '10:21',
+    metadata: {
+      result: 'chart-rendered',
+    },
+  },
+  {
+    id: 'm25',
+    role: 'host',
+    senderId: 'host1',
+    senderName: 'BizAgent',
+    content: 'Q4 预算与目标草案：\n\n【预算分配】\n• 云服务：45%（重点投入）\n• 企业服务：30%\n• 海外市场：18%（增速最快）\n• 消费者业务：7%（收缩止血）\n\n【增长目标】\n• 总营收：+15%（目标 9,200万）\n• 毛利率：整体维持 55%\n• 客户留存率：提升至 85%\n\n@samar 如需调整权重请告诉我。',
+    timestamp: '10:22',
+    mentions: ['samhar'],
+  },
 ];
 
 // 将消息分配给第一个项目的第一个对话
 workLines[0].chats[0].messages = chatMessages;
+
+
 
 export const taskFlow = [
   { step: 1, name: '计划', agent: 'BizAgent', status: 'completed' as const, time: '10:03' },
