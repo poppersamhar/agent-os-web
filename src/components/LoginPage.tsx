@@ -48,7 +48,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         />
 
         {/* 文本内容叠加在背景图上 */}
-        <div className="relative z-10 px-12 pt-10 mt-16">
+        <div className="relative z-10 px-12 pt-10 mt-6">
           <div className="flex items-center gap-3 mb-10">
             <img src="/logo-agentos.png" alt="Agent-OS" className="w-10 h-10" draggable={false} />
             <span className="text-2xl font-semibold text-text tracking-tight">Agent-OS</span>
