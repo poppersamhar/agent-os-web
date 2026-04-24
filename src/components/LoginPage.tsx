@@ -48,13 +48,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         />
 
         {/* 文本内容叠加在背景图上 */}
-        <div className="relative z-10 px-12 pt-10">
-          <div className="flex items-center gap-2.5 mb-10">
-            <img src="/logo-agentos.png" alt="Agent-OS" className="w-8 h-8" draggable={false} />
-            <span className="text-xl font-semibold text-text tracking-tight">Agent-OS</span>
+        <div className="relative z-10 px-12 pt-10 mt-16">
+          <div className="flex items-center gap-3 mb-10">
+            <img src="/logo-agentos.png" alt="Agent-OS" className="w-10 h-10" draggable={false} />
+            <span className="text-2xl font-semibold text-text tracking-tight">Agent-OS</span>
           </div>
 
-          <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-text">
+          <h1 className="text-[32px] font-semibold leading-tight tracking-tight text-text">
             企业下一位骨干成员，
             <br />
             <span style={{ color: '#e17055' }}>是 AI Agent。</span>
@@ -69,8 +69,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12 relative min-h-0 overflow-y-auto bg-white">
         {/* 移动端 Logo */}
         <div className="lg:hidden absolute top-6 left-6 flex items-center gap-2">
-          <img src="/logo-agentos.png" alt="Agent-OS" className="w-7 h-7" draggable={false} />
-          <span className="text-lg font-semibold text-text">Agent-OS</span>
+          <img src="/logo-agentos.png" alt="Agent-OS" className="w-9 h-9" draggable={false} />
+          <span className="text-xl font-semibold text-text">Agent-OS</span>
         </div>
 
         {/* 语言选择 */}
