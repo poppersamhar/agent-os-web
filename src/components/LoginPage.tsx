@@ -31,9 +31,22 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="w-full h-full flex bg-white">
       {/* ─── 左侧：品牌展示区 ─── */}
-      <div className="hidden lg:flex w-1/2 flex-col" style={{ backgroundColor: '#faf6f3' }}>
-        {/* 上部：Logo + 文案 */}
-        <div className="px-12 pt-10 pb-4 shrink-0">
+      <div
+        className="hidden lg:flex w-[58%] relative overflow-hidden"
+        style={{ backgroundColor: '#faf6f3' }}
+      >
+        {/* 背景图：cover 铺满，偏右显示裁掉左侧空白 */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/login-bg-clean.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: '65% center',
+          }}
+        />
+
+        {/* 文本内容叠加在背景图上 */}
+        <div className="relative z-10 px-12 pt-10">
           <div className="flex items-center gap-2.5 mb-10">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#e17055' }}>
               <Hexagon className="w-5 h-5 text-white" strokeWidth={1.5} />
@@ -49,16 +62,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <p className="mt-4 text-[15px] text-text-secondary leading-relaxed max-w-sm">
             The operating system for your AI agent workforce.
           </p>
-        </div>
-
-        {/* 下部：3D 背景图 */}
-        <div className="flex-1 flex items-center justify-center min-h-0 px-6 pb-6">
-          <img
-            src="/login-bg-clean.png"
-            alt="Agent OS"
-            className="max-w-full max-h-full object-contain"
-            draggable={false}
-          />
         </div>
       </div>
 
