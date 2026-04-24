@@ -1,10 +1,33 @@
 import { useState } from 'react';
 import {
-  Mail, Lock, Eye, EyeOff, Hexagon, Globe
+  Mail, Lock, Eye, EyeOff, Globe
 } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: () => void;
+}
+
+/* ─── Agent OS Logo：六边形 + H 形几何图标 ─── */
+function AgentOSLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 82 74" className={className} fill="none">
+      {/* 六边形外框 */}
+      <path
+        d="M41 2.5L73.5 21.25V52.75L41 71.5L8.5 52.75V21.25L41 2.5Z"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinejoin="round"
+      />
+      {/* 内部 H 形几何图案 */}
+      <path
+        d="M28 24L28 50M28 37L46 24L46 50"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
@@ -41,16 +64,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           style={{
             backgroundImage: 'url(/login-bg-clean.png)',
             backgroundSize: 'cover',
-            backgroundPosition: '65% center',
+            backgroundPosition: '52% center',
           }}
         />
 
         {/* 文本内容叠加在背景图上 */}
         <div className="relative z-10 px-12 pt-10">
           <div className="flex items-center gap-2.5 mb-10">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#e17055' }}>
-              <Hexagon className="w-5 h-5 text-white" strokeWidth={1.5} />
-            </div>
+            <AgentOSLogo className="w-8 h-8 text-[#e17055]" />
             <span className="text-xl font-semibold text-text tracking-tight">agent-os</span>
           </div>
 
@@ -69,9 +90,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12 relative min-h-0 overflow-y-auto bg-white">
         {/* 移动端 Logo */}
         <div className="lg:hidden absolute top-6 left-6 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ backgroundColor: '#e17055' }}>
-            <Hexagon className="w-4 h-4 text-white" strokeWidth={1.5} />
-          </div>
+          <AgentOSLogo className="w-7 h-7 text-[#e17055]" />
           <span className="text-lg font-semibold text-text">agent-os</span>
         </div>
 
