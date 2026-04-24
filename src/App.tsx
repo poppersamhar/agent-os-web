@@ -30,6 +30,11 @@ function AppContent() {
     try { localStorage.setItem('agent-os-logged-in', 'true'); } catch { /* ignore */ }
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    try { localStorage.removeItem('agent-os-logged-in'); } catch { /* ignore */ }
+  };
+
   const [activeView, setActiveView] = useState<ViewType>('home');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -272,6 +277,7 @@ function AppContent() {
           onPinChat={handlePinChat}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(v => !v)}
+          onLogout={handleLogout}
         />
       </div>
 

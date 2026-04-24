@@ -26,6 +26,7 @@ interface SidebarProps {
   onPinChat?: (projectId: string, chatId: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  onLogout?: () => void;
 }
 
 const navItems = [
@@ -291,7 +292,7 @@ function ProjectTree({
   );
 }
 
-export default function Sidebar({ activeView, activeProjectId, activeChatId, projects, onNavigate, onCreateProject, onCreateTask, collapsed, onToggleCollapse }: SidebarProps) {
+export default function Sidebar({ activeView, activeProjectId, activeChatId, projects, onNavigate, onCreateProject, onCreateTask, collapsed, onToggleCollapse, onLogout }: SidebarProps) {
   const { themeColor, setThemeColor } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -459,7 +460,7 @@ export default function Sidebar({ activeView, activeProjectId, activeChatId, pro
               </div>
               <div className="border-t border-border-light mx-1.5" />
               <div className="p-1.5">
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-danger hover:bg-danger-subtle transition-colors">
+                <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-danger hover:bg-danger-subtle transition-colors">
                   <LogOut className="w-4 h-4" strokeWidth={1.8} />
                   退出登录
                 </button>
