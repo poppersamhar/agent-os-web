@@ -7,28 +7,7 @@ interface LoginPageProps {
   onLogin: () => void;
 }
 
-/* ─── Agent OS Logo：六边形 + H 形几何图标 ─── */
-function AgentOSLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 82 74" className={className} fill="none">
-      {/* 六边形外框 */}
-      <path
-        d="M41 2.5L73.5 21.25V52.75L41 71.5L8.5 52.75V21.25L41 2.5Z"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      {/* 内部 H 形几何图案 */}
-      <path
-        d="M28 24L28 50M28 37L46 24L46 50"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
@@ -71,7 +50,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* 文本内容叠加在背景图上 */}
         <div className="relative z-10 px-12 pt-10">
           <div className="flex items-center gap-2.5 mb-10">
-            <AgentOSLogo className="w-8 h-8 text-[#e17055]" />
+            <img src="/logo-agentos.png" alt="Agent-OS" className="w-8 h-8" draggable={false} />
             <span className="text-xl font-semibold text-text tracking-tight">Agent-OS</span>
           </div>
 
@@ -90,7 +69,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-6 sm:px-12 relative min-h-0 overflow-y-auto bg-white">
         {/* 移动端 Logo */}
         <div className="lg:hidden absolute top-6 left-6 flex items-center gap-2">
-          <AgentOSLogo className="w-7 h-7 text-[#e17055]" />
+          <img src="/logo-agentos.png" alt="Agent-OS" className="w-7 h-7" draggable={false} />
           <span className="text-lg font-semibold text-text">Agent-OS</span>
         </div>
 
