@@ -64,7 +64,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           style={{
             backgroundImage: 'url(/login-bg-clean.png)',
             backgroundSize: 'cover',
-            backgroundPosition: '52% center',
+            backgroundPosition: '75% center',
           }}
         />
 
