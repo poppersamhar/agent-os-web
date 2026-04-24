@@ -76,12 +76,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-text">
-            企业任务的执行与管理，
+            企业下一位骨干成员，
             <br />
-            <span style={{ color: '#e17055' }}>交给数字员工。</span>
+            <span style={{ color: '#e17055' }}>是 AI Agent。</span>
           </h1>
           <p className="mt-4 text-[15px] text-text-secondary leading-relaxed max-w-sm">
-            AI 原生的数字员工管理与任务执行平台。
+            AI Native 管理的操作系统 · 用数字员工重塑企业运行方式
           </p>
         </div>
       </div>
