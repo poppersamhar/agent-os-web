@@ -76,12 +76,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-text">
-            你的下一位项目成员，
+            企业任务的执行与管理，
             <br />
-            <span style={{ color: '#e17055' }}>是数字员工。</span>
+            <span style={{ color: '#e17055' }}>交给数字员工。</span>
           </h1>
           <p className="mt-4 text-[15px] text-text-secondary leading-relaxed max-w-sm">
-            AI 原生的数字员工项目操作系统。
+            AI 原生的数字员工管理与任务执行平台。
           </p>
         </div>
       </div>
