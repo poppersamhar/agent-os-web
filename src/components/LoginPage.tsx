@@ -1,220 +1,12 @@
 import { useState } from 'react';
 import {
-  Mail, Lock, Eye, EyeOff, Hexagon, Globe, Bot, Wrench,
-  Hammer, Database, Activity
+  Mail, Lock, Eye, EyeOff, Hexagon, Globe
 } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: () => void;
 }
 
-/* ─── 轴测投影工具函数 ─── */
-const COS30 = 0.866;
-const SIN30 = 0.5;
-
-function iso(x: number, y: number, z: number) {
-  return {
-    x: (x - z) * COS30,
-    y: (x + z) * SIN30 - y,
-  };
-}
-
-/* ─── 左侧 3D 轴测场景 ─── */
-function IsometricScene() {
-  const s = 42; // 立方体半边长
-  const cx = 0;
-  const cy = 0;
-  const cz = 0;
-
-  // 立方体 8 个顶点
-  const v = [
-    iso(cx - s, cy - s, cz - s), // 0 左下后
-    iso(cx + s, cy - s, cz - s), // 1 右下后
-    iso(cx + s, cy - s, cz + s), // 2 右下前
-    iso(cx - s, cy - s, cz + s), // 3 左下前
-    iso(cx - s, cy + s, cz - s), // 4 左上后
-    iso(cx + s, cy + s, cz - s), // 5 右上后
-    iso(cx + s, cy + s, cz + s), // 6 右上前
-    iso(cx - s, cy + s, cz + s), // 7 左上前
-  ];
-
-  const toS = (p: { x: number; y: number }) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-
-  // 可见的三个面 path
-  const topFace = `M${toS(v[4])} L${toS(v[5])} L${toS(v[6])} L${toS(v[7])}Z`;
-  const rightFace = `M${toS(v[1])} L${toS(v[2])} L${toS(v[6])} L${toS(v[5])}Z`;
-  const leftFace = `M${toS(v[0])} L${toS(v[3])} L${toS(v[7])} L${toS(v[4])}Z`;
-
-  // 卡片位置（轴测坐标，围绕立方体）
-  const cards = [
-    { icon: Bot, label: 'Agent', x: -95, y: 30, z: -50 },
-    { icon: Wrench, label: 'Skills', x: 85, y: 45, z: -55 },
-    { icon: Hammer, label: 'Tools', x: -80, y: 20, z: 70 },
-    { icon: Database, label: 'Data', x: 90, y: 35, z: 65 },
-    { icon: Activity, label: 'Monitor', x: 0, y: 55, z: 95 },
-  ];
-
-  // 平台底座（比立方体宽）
-  const ps = 70;
-  const pY = -s - 6;
-  const pv = [
-    iso(cx - ps, pY, cz - ps),
-    iso(cx + ps, pY, cz - ps),
-    iso(cx + ps, pY, cz + ps),
-    iso(cx - ps, pY, cz + ps),
-  ];
-  const platformPath = `M${toS(pv[0])} L${toS(pv[1])} L${toS(pv[2])} L${toS(pv[3])}Z`;
-
-  // 平台侧面（厚度）
-  const thick = 10;
-  const pvs = [
-    iso(cx - ps, pY, cz + ps),
-    iso(cx + ps, pY, cz + ps),
-    iso(cx + ps, pY - thick, cz + ps),
-    iso(cx - ps, pY - thick, cz + ps),
-  ];
-  const platformSidePath = `M${toS(pvs[0])} L${toS(pvs[1])} L${toS(pvs[2])} L${toS(pvs[3])}Z`;
-
-  return (
-    <div className="relative w-[480px] h-[420px] select-none" style={{ transform: 'translateX(-20px)' }}>
-      <svg viewBox="-180 -200 360 400" className="w-full h-full" style={{ overflow: 'visible' }}>
-        <defs>
-          {/* 顶面渐变 */}
-          <linearGradient id="topGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ffa07a" />
-            <stop offset="100%" stopColor="#ff8a65" />
-          </linearGradient>
-          {/* 正面渐变 */}
-          <linearGradient id="frontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ff8a65" />
-            <stop offset="100%" stopColor="#e17055" />
-          </linearGradient>
-          {/* 侧面渐变 */}
-          <linearGradient id="sideGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#d65a3f" />
-            <stop offset="100%" stopColor="#c0392b" />
-          </linearGradient>
-          {/* 平台渐变 */}
-          <linearGradient id="platGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
-            <stop offset="100%" stopColor="rgba(250,246,243,0.85)" />
-          </linearGradient>
-          {/* 阴影滤镜 */}
-          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="12" />
-            <feOffset dx="0" dy="16" />
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.2" />
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          {/* 平台阴影 */}
-          <filter id="platShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="16" />
-            <feOffset dx="0" dy="20" />
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.12" />
-            </feComponentTransfer>
-          </filter>
-          {/* 虚线端点 */}
-          <marker id="dotEnd" markerWidth="6" markerHeight="6" refX="3" refY="3">
-            <circle cx="3" cy="3" r="2" fill="#e17055" opacity="0.5" />
-          </marker>
-        </defs>
-
-        {/* 平台底层阴影 */}
-        <ellipse cx="0" cy="55" rx="110" ry="28" fill="rgba(225,112,85,0.1)" filter="url(#platShadow)" />
-
-        {/* 平台侧面 */}
-        <path d={platformSidePath} fill="rgba(230,220,215,0.5)" />
-
-        {/* 平台顶面 */}
-        <path d={platformPath} fill="url(#platGrad)" stroke="rgba(255,255,255,0.8)" strokeWidth="1" />
-
-        {/* 连接线（在立方体下层） */}
-        {cards.map((c, i) => {
-          const p = iso(c.x, c.y, c.z);
-          // 连到立方体正面的中心偏上
-          const target = iso(0, -s * 0.3, s * 0.6);
-          const mid = { x: (p.x + target.x) / 2, y: (p.y + target.y) / 2 - 15 };
-          return (
-            <path
-              key={i}
-              d={`M${toS(p)} Q${mid.x.toFixed(1)},${mid.y.toFixed(1)} ${toS(target)}`}
-              stroke="#e17055"
-              strokeWidth="0.8"
-              strokeDasharray="3,4"
-              fill="none"
-              opacity="0.35"
-              markerEnd="url(#dotEnd)"
-            />
-          );
-        })}
-
-        {/* 立方体右侧面 */}
-        <path d={rightFace} fill="url(#sideGrad)" />
-        {/* 立方体左侧面 */}
-        <path d={leftFace} fill="url(#frontGrad)" />
-        {/* 立方体顶面 */}
-        <path d={topFace} fill="url(#topGrad)" />
-
-        {/* 立方体正面高光边 */}
-        <path d={`M${toS(v[3])} L${toS(v[7])}`} stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" fill="none" />
-        <path d={`M${toS(v[7])} L${toS(v[6])}`} stroke="rgba(255,255,255,0.25)" strokeWidth="1" fill="none" />
-
-        {/* 装饰小圆点 */}
-        <circle cx="-140" cy="-80" r="3" fill="#e17055" opacity="0.2" />
-        <circle cx="130" cy="-60" r="2.5" fill="#e17055" opacity="0.15" />
-        <circle cx="-120" cy="100" r="2" fill="#e17055" opacity="0.12" />
-        <circle cx="145" cy="85" r="2" fill="#e17055" opacity="0.1" />
-      </svg>
-
-      {/* HTML 卡片层（覆盖在 SVG 之上） */}
-      {cards.map((c) => {
-        const p = iso(c.x, c.y, c.z);
-        return (
-          <div
-            key={c.label}
-            className="absolute flex items-center gap-2 px-3 py-2 rounded-xl animate-fade-in"
-            style={{
-              left: `calc(50% + ${p.x * 1.15}px - 40px)`,
-              top: `calc(50% + ${p.y * 1.15}px - 14px)`,
-              background: 'rgba(255,255,255,0.78)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.7)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.03)',
-              zIndex: 10,
-              animationDelay: `${0.4 + Math.random() * 0.3}s`,
-              animationFillMode: 'both',
-            }}
-          >
-            <c.icon className="w-[15px] h-[15px] shrink-0" strokeWidth={1.5} style={{ color: '#e17055' }} />
-            <span className="text-[11px] font-medium text-text whitespace-nowrap">{c.label}</span>
-          </div>
-        );
-      })}
-
-      {/* 立方体中心 logo（覆盖层） */}
-      <div
-        className="absolute flex items-center justify-center"
-        style={{
-          left: '50%',
-          top: '42%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 5,
-        }}
-      >
-        <Hexagon className="w-10 h-10 text-white/90" strokeWidth={1.2} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── 主登录页 ─── */
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -240,7 +32,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     <div className="w-full h-full flex bg-white">
       {/* ─── 左侧：品牌展示区 ─── */}
       <div className="hidden lg:flex w-1/2 flex-col" style={{ backgroundColor: '#faf6f3' }}>
-        {/* 上部：文案 */}
+        {/* 上部：Logo + 文案 */}
         <div className="px-12 pt-10 pb-4 shrink-0">
           <div className="flex items-center gap-2.5 mb-10">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#e17055' }}>
@@ -259,9 +51,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </p>
         </div>
 
-        {/* 下部：3D 轴测插图 */}
-        <div className="flex-1 flex items-center justify-center pb-8 min-h-0">
-          <IsometricScene />
+        {/* 下部：3D 背景图 */}
+        <div className="flex-1 flex items-center justify-center min-h-0 px-6 pb-6">
+          <img
+            src="/login-bg-clean.png"
+            alt="Agent OS"
+            className="max-w-full max-h-full object-contain"
+            draggable={false}
+          />
         </div>
       </div>
 
