@@ -12,6 +12,7 @@ import KnowledgeGraph from './components/KnowledgeGraph';
 import DraggableChat from './components/DraggableChat';
 import FilePanel from './components/FilePanel';
 import TaskWizard from './components/TaskWizard';
+import LoginPage from './components/LoginPage';
 import { projects as initialProjects, agents as initialAgents } from './data/mockData';
 import type { Project, Agent } from './data/mockData';
 import type { ExcludeRect } from './components/DraggableChat';
@@ -19,6 +20,16 @@ import type { ExcludeRect } from './components/DraggableChat';
 type ViewType = 'home' | 'project' | 'agent' | 'skill';
 
 function AppContent() {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    try { return localStorage.getItem('agent-os-logged-in') === 'true'; }
+    catch { return false; }
+  });
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    try { localStorage.setItem('agent-os-logged-in', 'true'); } catch { /* ignore */ }
+  };
+
   const [activeView, setActiveView] = useState<ViewType>('home');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -236,6 +247,10 @@ function AppContent() {
       window.removeEventListener('mouseup', handleProjectResizeEnd);
     };
   }, [handleProjectResizeMove, handleProjectResizeEnd]);
+
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
   return (
     <div className="h-screen flex bg-bg overflow-hidden">
