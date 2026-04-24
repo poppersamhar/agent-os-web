@@ -72,7 +72,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <div className="relative z-10 px-12 pt-10">
           <div className="flex items-center gap-2.5 mb-10">
             <AgentOSLogo className="w-8 h-8 text-[#e17055]" />
-            <span className="text-xl font-semibold text-text tracking-tight">agent-os</span>
+            <span className="text-xl font-semibold text-text tracking-tight">Agent-OS</span>
           </div>
 
           <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-text">
@@ -91,7 +91,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* 移动端 Logo */}
         <div className="lg:hidden absolute top-6 left-6 flex items-center gap-2">
           <AgentOSLogo className="w-7 h-7 text-[#e17055]" />
-          <span className="text-lg font-semibold text-text">agent-os</span>
+          <span className="text-lg font-semibold text-text">Agent-OS</span>
         </div>
 
         {/* 语言选择 */}
@@ -106,7 +106,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <div className="w-full max-w-[360px] py-10">
           {/* 标题 */}
           <div className="text-center mb-8">
-            <h2 className="text-[22px] font-semibold text-text tracking-tight">欢迎回到 agent-os</h2>
+            <h2 className="text-[22px] font-semibold text-text tracking-tight">欢迎回到 Agent-OS</h2>
             <p className="mt-1.5 text-[13px] text-text-muted">登录或注册账号以继续</p>
           </div>
 
