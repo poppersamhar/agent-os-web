@@ -76,12 +76,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-text">
-            Build, Orchestrate, and
+            构建、编排并
             <br />
-            <span style={{ color: '#e17055' }}>Scale AI Agents.</span>
+            <span style={{ color: '#e17055' }}>规模化 AI Agent。</span>
           </h1>
           <p className="mt-4 text-[15px] text-text-secondary leading-relaxed max-w-sm">
-            The operating system for your AI agent workforce.
+            为您的 AI 智能体团队打造的数字员工操作系统。
           </p>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* 语言选择 */}
         <div className="absolute top-6 right-8 flex items-center gap-1.5 text-[13px] text-text-secondary cursor-pointer hover:text-text transition-colors">
           <Globe className="w-4 h-4" strokeWidth={1.5} />
-          <span>English</span>
+          <span>简体中文</span>
           <svg width="10" height="6" viewBox="0 0 10 6" className="ml-0.5 text-text-muted">
             <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
           </svg>
@@ -106,8 +106,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <div className="w-full max-w-[360px] py-10">
           {/* 标题 */}
           <div className="text-center mb-8">
-            <h2 className="text-[22px] font-semibold text-text tracking-tight">Welcome to agent-os</h2>
-            <p className="mt-1.5 text-[13px] text-text-muted">Login or create an account to continue</p>
+            <h2 className="text-[22px] font-semibold text-text tracking-tight">欢迎回到 agent-os</h2>
+            <p className="mt-1.5 text-[13px] text-text-muted">登录或注册账号以继续</p>
           </div>
 
           {/* Tab 切换 */}
@@ -116,13 +116,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               onClick={() => { setActiveTab('login'); setError(''); }}
               className={`text-[14px] font-medium pb-2 transition-colors ${activeTab === 'login' ? 'text-text' : 'text-text-muted hover:text-text'}`}
             >
-              Login
+              登录
             </button>
             <button
               onClick={() => { setActiveTab('signup'); setError(''); }}
               className={`text-[14px] font-medium pb-2 transition-colors ${activeTab === 'signup' ? 'text-text' : 'text-text-muted hover:text-text'}`}
             >
-              Sign up
+              注册
             </button>
             <div
               className="absolute bottom-0 h-[2px] rounded-full transition-all duration-300"
@@ -137,14 +137,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           {/* 表单 */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[13px] font-medium text-text mb-1.5">Email</label>
+              <label className="block text-[13px] font-medium text-text mb-1.5">邮箱</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" strokeWidth={1.5} />
                 <input
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="m@example.com"
+                  placeholder="name@company.com"
                   className="w-full h-11 pl-10 pr-4 rounded-lg border border-border bg-white text-[14px] text-text placeholder:text-text-placeholder outline-none transition-all focus:border-text-muted focus:ring-2 focus:ring-border"
                 />
               </div>
@@ -152,9 +152,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[13px] font-medium text-text">Password</label>
+                <label className="text-[13px] font-medium text-text">密码</label>
                 <button type="button" className="text-[12px] text-text-muted hover:text-text underline underline-offset-2 transition-colors">
-                  Forgot password?
+                  忘记密码？
                 </button>
               </div>
               <div className="relative">
@@ -163,7 +163,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="请输入密码"
                   className="w-full h-11 pl-10 pr-10 rounded-lg border border-border bg-white text-[14px] text-text placeholder:text-text-placeholder outline-none transition-all focus:border-text-muted focus:ring-2 focus:ring-border"
                 />
                 <button
@@ -187,15 +187,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               className="w-full h-11 rounded-lg text-[14px] font-medium text-white transition-all hover:opacity-90 active:scale-[0.98]"
               style={{ backgroundColor: '#e17055' }}
             >
-              {activeTab === 'login' ? 'Login' : 'Sign up'}
+              {activeTab === 'login' ? '登录' : '注册'}
             </button>
           </form>
 
           <p className="mt-6 text-center text-[12px] text-text-muted leading-relaxed">
-            By continuing, you agree to our{' '}
-            <button type="button" className="underline underline-offset-2 hover:text-text transition-colors">Terms of Service</button>
-            {' '}and{' '}
-            <button type="button" className="underline underline-offset-2 hover:text-text transition-colors">Privacy Policy</button>.
+            继续使用即表示您同意我们的{' '}
+            <button type="button" className="underline underline-offset-2 hover:text-text transition-colors">服务条款</button>
+            {' '}和{' '}
+            <button type="button" className="underline underline-offset-2 hover:text-text transition-colors">隐私政策</button>。
           </p>
         </div>
       </div>
