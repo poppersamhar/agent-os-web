@@ -1,6 +1,7 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { projects, agents, skills } from '../data/mockData';
 import { useTheme } from '../contexts/ThemeContext';
+import { X, FileText } from 'lucide-react';
 import type { ExcludeRect } from './DraggableChat';
 
 /* ─── Types ─── */
@@ -54,7 +55,7 @@ interface GraphEdge {
   target: string;
 }
 
-function buildGraph(projectId: string) {
+function buildGraph(projectId: string, taskId?: string | null) {
   const project = projects.find((p) => p.id === projectId);
   if (!project) return { nodes: [] as GraphNode[], edges: [] as GraphEdge[] };
 
@@ -70,50 +71,98 @@ function buildGraph(projectId: string) {
     layer, detail, meta,
   });
 
-  nodes.push(makeNode(project.id, project.name, 'project', 14, 5, 0, project.description || '项目节点', { 成员: String(project.memberCount) }));
+  if (taskId) {
+    // 任务子图谱模式
+    const chat = project.chats.find((c) => c.id === taskId);
+    const centerLabel = chat ? chat.name : '任务节点';
+    nodes.push(makeNode('task-center', centerLabel, 'project', 14, 5, 0, chat ? `${chat.name}任务详情` : '任务详情', { 消息数: String(chat?.messages.length || 0) }));
 
-  const relatedAgents = agents.filter((a) => a.workLine === project.name);
-  relatedAgents.forEach((agent) => {
-    nodes.push(makeNode(agent.id, agent.name, 'agent', 8.5, 2, 1, agent.description, { 状态: agent.status, 调用: String(agent.calls) }));
-    edges.push({ source: project.id, target: agent.id });
-    inc(project.id); inc(agent.id);
-  });
+    // 关联的 Agent（从消息中提取）
+    const taskAgents = agents.filter((a) => a.workLine === project.name).slice(0, 3);
+    taskAgents.forEach((agent) => {
+      nodes.push(makeNode(agent.id, agent.name, 'agent', 8.5, 2, 1, agent.description, { 状态: agent.status, 调用: String(agent.calls) }));
+      edges.push({ source: 'task-center', target: agent.id });
+      inc('task-center'); inc(agent.id);
+    });
 
-  const relatedSkills = skills.filter((s) =>
-    relatedAgents.some((a) => a.mountedSkills.includes(s.id))
-  );
-  relatedSkills.forEach((skill) => {
-    nodes.push(makeNode(skill.id, skill.name, 'skill', 6.5, 1.3, 1, skill.description, { 类别: skill.category, 作者: skill.author }));
-    const parent = relatedAgents.find((a) => a.mountedSkills.includes(skill.id));
-    if (parent) {
-      edges.push({ source: parent.id, target: skill.id });
-      inc(parent.id); inc(skill.id);
-    }
-  });
+    // 任务相关文件
+    const taskFiles = [
+      { name: 'task_data.xlsx', size: '1.2MB' },
+      { name: 'analysis_result.csv', size: '456KB' },
+    ];
+    taskFiles.forEach((f, i) => {
+      const fid = `tfile-${i}`;
+      nodes.push(makeNode(fid, f.name, 'file', 5.5, 1, 2, `任务文件`, { 大小: f.size }));
+      edges.push({ source: 'task-center', target: fid });
+      inc('task-center'); inc(fid);
+    });
 
-  const files = [
-    { name: 'sales_q3.xlsx', size: '2.3MB' },
-    { name: 'region_data.csv', size: '856KB' },
-    { name: 'budget_notes.md', size: '12KB' },
-  ];
-  files.forEach((f, i) => {
-    const fid = `file-${i}`;
-    nodes.push(makeNode(fid, f.name, 'file', 5.5, 1, 2, `项目文件`, { 大小: f.size }));
-    edges.push({ source: project.id, target: fid });
-    inc(project.id); inc(fid);
-  });
+    // 任务洞察
+    const taskInsights = [
+      { text: '异常发现', desc: '发现3处数据异常' },
+      { text: '优化建议', desc: '建议调整参数配置' },
+    ];
+    taskInsights.forEach((kp, i) => {
+      const kid = `tkp-${i}`;
+      nodes.push(makeNode(kid, kp.text, 'insight', 5.5, 1, 2, kp.desc));
+      edges.push({ source: 'task-center', target: kid });
+      inc('task-center'); inc(kid);
+    });
+  } else {
+    // 项目图谱模式
+    nodes.push(makeNode(project.id, project.name, 'project', 14, 5, 0, project.description || '项目节点', { 成员: String(project.memberCount) }));
 
-  const keypoints = [
-    { text: '营收对比分析', desc: '各业务线Q3营收横向对比' },
-    { text: '消费者业务下滑', desc: '消费者业务同比下滑5%' },
-    { text: '海外市场+34%', desc: '海外市场增速领跑全业务' },
-  ];
-  keypoints.forEach((kp, i) => {
-    const kid = `kp-${i}`;
-    nodes.push(makeNode(kid, kp.text, 'insight', 5.5, 1, 2, kp.desc));
-    edges.push({ source: project.id, target: kid });
-    inc(project.id); inc(kid);
-  });
+    // 任务节点（用 chats 作为任务）
+    project.chats.forEach((chat) => {
+      const tid = `chat-${chat.id}`;
+      nodes.push(makeNode(tid, chat.name, 'agent', 8.5, 2, 1, `项目任务：${chat.name}`, { 消息数: String(chat.messages.length) }));
+      edges.push({ source: project.id, target: tid });
+      inc(project.id); inc(tid);
+    });
+
+    const relatedAgents = agents.filter((a) => a.workLine === project.name);
+    relatedAgents.forEach((agent) => {
+      nodes.push(makeNode(agent.id, agent.name, 'agent', 8.5, 2, 1, agent.description, { 状态: agent.status, 调用: String(agent.calls) }));
+      edges.push({ source: project.id, target: agent.id });
+      inc(project.id); inc(agent.id);
+    });
+
+    const relatedSkills = skills.filter((s) =>
+      relatedAgents.some((a) => a.mountedSkills.includes(s.id))
+    );
+    relatedSkills.forEach((skill) => {
+      nodes.push(makeNode(skill.id, skill.name, 'skill', 6.5, 1.3, 1, skill.description, { 类别: skill.category, 作者: skill.author }));
+      const parent = relatedAgents.find((a) => a.mountedSkills.includes(skill.id));
+      if (parent) {
+        edges.push({ source: parent.id, target: skill.id });
+        inc(parent.id); inc(skill.id);
+      }
+    });
+
+    const files = [
+      { name: 'sales_q3.xlsx', size: '2.3MB' },
+      { name: 'region_data.csv', size: '856KB' },
+      { name: 'budget_notes.md', size: '12KB' },
+    ];
+    files.forEach((f, i) => {
+      const fid = `file-${i}`;
+      nodes.push(makeNode(fid, f.name, 'file', 5.5, 1, 2, `项目文件`, { 大小: f.size }));
+      edges.push({ source: project.id, target: fid });
+      inc(project.id); inc(fid);
+    });
+
+    const keypoints = [
+      { text: '营收对比分析', desc: '各业务线Q3营收横向对比' },
+      { text: '消费者业务下滑', desc: '消费者业务同比下滑5%' },
+      { text: '海外市场+34%', desc: '海外市场增速领跑全业务' },
+    ];
+    keypoints.forEach((kp, i) => {
+      const kid = `kp-${i}`;
+      nodes.push(makeNode(kid, kp.text, 'insight', 5.5, 1, 2, kp.desc));
+      edges.push({ source: project.id, target: kid });
+      inc(project.id); inc(kid);
+    });
+  }
 
   nodes.forEach((n) => {
     const d = degree.get(n.id) || 0;
@@ -144,11 +193,27 @@ export default function KnowledgeGraph({
   const themeColorRef = useRef(themeColor);
   themeColorRef.current = themeColor;
 
+  // 递进层级状态
+  const [currentLevel, setCurrentLevel] = useState<'project' | 'task'>('project');
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskName, setSelectedTaskName] = useState('');
+  const [docPreview, setDocPreview] = useState<{ name: string; content: string } | null>(null);
+
+  // ref 同步（供 Canvas 事件闭包读取）
+  const levelRef = useRef(currentLevel);
+  const taskIdRef = useRef(selectedTaskId);
+  const dragMovedRef = useRef(false);
+  levelRef.current = currentLevel;
+  taskIdRef.current = selectedTaskId;
+
+  const project = projects.find((p) => p.id === projectId);
+
   useEffect(() => {
-    const { nodes, edges } = buildGraph(projectId);
+    const taskId = currentLevel === 'task' ? selectedTaskId : null;
+    const { nodes, edges } = buildGraph(projectId, taskId);
     graphRef.current = { nodes, edges };
     prevExRef.current = { cx: 0, cy: 0, active: false };
-  }, [projectId]);
+  }, [projectId, currentLevel, selectedTaskId]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -457,11 +522,37 @@ export default function KnowledgeGraph({
 
     const onDown = (e: MouseEvent) => {
       const hit = hitTest(posOf(e).x, posOf(e).y);
-      if (hit) draggedNodeRef.current = hit;
+      if (!hit) return;
+      draggedNodeRef.current = hit;
+      dragMovedRef.current = false;
+
+      // 点击节点进入子图谱或预览文档（短按+无位移时触发，拖拽时不触发）
+      const clickTimer = setTimeout(() => {
+        if (dragMovedRef.current) return; // 发生了拖拽，不触发点击
+        if (levelRef.current === 'project' && (hit.type === 'agent' || hit.type === 'insight')) {
+          // 进入任务子图谱
+          const tid = hit.id.startsWith('chat-') ? hit.id.replace('chat-', '') : hit.id;
+          setSelectedTaskId(tid);
+          setSelectedTaskName(hit.label);
+          setCurrentLevel('task');
+        } else if (hit.type === 'file') {
+          // 预览文档
+          setDocPreview({
+            name: hit.label,
+            content: `文档：${hit.label}\n\n${hit.detail}\n\n${Object.entries(hit.meta || {}).map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n（此处为文档预览内容占位，实际应调用后端接口获取文档内容）`,
+          });
+        }
+      }, 200);
+
+      const clearTimer = () => clearTimeout(clickTimer);
+      window.addEventListener('mouseup', clearTimer, { once: true });
     };
     const onMove = (e: MouseEvent) => {
       const p = posOf(e);
       if (draggedNodeRef.current) {
+        const dx = draggedNodeRef.current.x - p.x;
+        const dy = draggedNodeRef.current.y - p.y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMovedRef.current = true;
         draggedNodeRef.current.x = p.x;
         draggedNodeRef.current.y = p.y;
       }
@@ -505,6 +596,50 @@ export default function KnowledgeGraph({
   return (
     <div ref={containerRef} className="w-full h-full bg-white relative">
       <canvas ref={canvasRef} className="w-full h-full block" />
+      {/* 面包屑导航 */}
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+        <button
+          onClick={() => {
+            setCurrentLevel('project');
+            setSelectedTaskId(null);
+            setSelectedTaskName('');
+          }}
+          className={`text-[13px] font-medium text-text hover:text-text transition-colors ${
+            currentLevel === 'project' ? 'text-text-secondary cursor-default' : ''
+          }`}
+          disabled={currentLevel === 'project'}
+        >
+          {project?.name}
+        </button>
+        {currentLevel === 'task' && (
+          <>
+            <span className="text-text-muted text-xs">/</span>
+            <span className="text-[13px] font-semibold text-text">{selectedTaskName}</span>
+          </>
+        )}
+      </div>
+
+      {/* 文档预览面板 */}
+      {docPreview && (
+        <div className="absolute bottom-4 right-4 z-30 w-[320px] max-h-[360px] bg-white/85 backdrop-blur-xl rounded-2xl border border-border/60 shadow-xl shadow-black/5 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <FileText className="w-3.5 h-3.5 text-text-muted" strokeWidth={1.5} />
+              <span className="text-[13px] font-semibold text-text truncate">{docPreview.name}</span>
+            </div>
+            <button
+              onClick={() => setDocPreview(null)}
+              className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors text-text-muted"
+            >
+              <X className="w-3.5 h-3.5" strokeWidth={1.5} />
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-4">
+            <p className="text-[13px] text-text-secondary leading-relaxed whitespace-pre-line">{docPreview.content}</p>
+          </div>
+        </div>
+      )}
+
       <div
         ref={tooltipRef}
         className="absolute hidden z-20 pointer-events-none bg-white/85 backdrop-blur-md rounded-xl border border-border/60 shadow-lg shadow-black/5 p-3 min-w-[180px] max-w-[240px]"

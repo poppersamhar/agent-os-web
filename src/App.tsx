@@ -10,7 +10,7 @@ import RightPanel from './components/RightPanel';
 import BizAgentPanel from './components/BizAgentPanel';
 import KnowledgeGraph from './components/KnowledgeGraph';
 import DraggableChat from './components/DraggableChat';
-import FilePanel from './components/FilePanel';
+
 import TaskWizard from './components/TaskWizard';
 import LoginPage from './components/LoginPage';
 import { projects as initialProjects, agents as initialAgents } from './data/mockData';
@@ -321,7 +321,7 @@ function AppContent() {
           </div>
         </>
       ) : isProjectOverview ? (
-        // 项目展示页：3D 图谱 + 浮动 BizAgent + 文件列表
+        // 项目展示页：全宽图谱 + 左侧浮动 BizAgent
         <div className="flex-1 flex min-w-0 bg-main-bg relative">
           <div className="flex-1 flex flex-col min-w-0">
             <div className="h-[52px] shrink-0 flex flex-col justify-center px-5 bg-white/70 backdrop-blur-md z-20">
@@ -333,7 +333,6 @@ function AppContent() {
               <DraggableChat projectId={activeProjectId} rectRef={excludeRectRef} />
             </div>
           </div>
-          <FilePanel projectId={activeProjectId} />
         </div>
       ) : isProjectChat ? (
         // 项目聊天页：左右分栏（ProjectChat + RightPanel）

@@ -30,15 +30,15 @@ export default function DraggableChat({ projectId, rectRef }: DraggableChatProps
   const [input, setInput] = useState('');
   const [minimized, setMinimized] = useState(false);
 
-  // 初始化到容器中心偏下
+  // 初始化到左侧偏下
   useEffect(() => {
     const setCenter = () => {
       const parent = containerRef.current?.parentElement;
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
       setPosition({
-        x: Math.max(40, rect.width / 2 - 170),
-        y: Math.max(40, rect.height * 0.58),
+        x: 20,
+        y: Math.max(40, rect.height * 0.55),
       });
     };
     setCenter();
