@@ -102,7 +102,7 @@ export default function ToolsPage() {
   const availableList = filtered.filter(c => !c.connected);
 
   return (
-    <div className="min-h-full px-8 py-6 bg-[#f9f9f9]">
+    <div className="min-h-full px-8 py-6 pr-[380px] bg-[#f9f9f9]">
       <div className="max-w-[1100px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

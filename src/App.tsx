@@ -284,7 +284,7 @@ function AppContent() {
                 className="absolute inset-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                 style={{ transform: `translateY(${(i - scrollIndex) * 100}%)` }}
               >
-                <div data-scrollable className="h-full overflow-y-auto pr-[372px]">
+                <div data-scrollable className={`h-full overflow-y-auto ${view === 'tools' ? '' : 'pr-[372px]'}`}>
                   {view === 'home' && <Dashboard />}
                   {view === 'tools' && <ToolsPage />}
                   {view === 'skill' && (
