@@ -31,8 +31,8 @@ interface SidebarProps {
 
 const navItems = [
   { key: 'home', label: '主页', icon: Home },
-  { key: 'tools', label: '工具与连接', icon: Plug },
   { key: 'skill', label: 'Skills', icon: Wrench },
+  { key: 'tools', label: '工具与连接', icon: Plug },
 ];
 
 const themeOptions = [

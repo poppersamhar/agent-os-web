@@ -60,7 +60,7 @@ function AppContent() {
   const isScrollableView = activeView === 'home' || activeView === 'tools' || activeView === 'skill';
 
   // 滚轮切换页面
-  const scrollViews: ViewType[] = ['home', 'tools', 'skill'];
+  const scrollViews: ViewType[] = ['home', 'skill', 'tools'];
   const scrollIndex = scrollViews.indexOf(activeView);
   useEffect(() => {
     let locked = false;
