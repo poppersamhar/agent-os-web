@@ -332,7 +332,7 @@ function AppContent() {
               <KnowledgeGraph projectId={activeProjectId} />
             </div>
           </div>
-          <div className="w-[360px] shrink-0 p-3 flex flex-col">
+          <div className="w-[360px] shrink-0 flex flex-col pt-[60px] pb-14 pr-3">
             <DraggableChat projectId={activeProjectId} mode="fixed" />
           </div>
         </div>
