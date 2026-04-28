@@ -15,7 +15,7 @@ import TaskWizard from './components/TaskWizard';
 import LoginPage from './components/LoginPage';
 import { projects as initialProjects, agents as initialAgents } from './data/mockData';
 import type { Project, Agent } from './data/mockData';
-import type { ExcludeRect } from './components/DraggableChat';
+
 
 type ViewType = 'home' | 'project' | 'agent' | 'skill';
 
@@ -46,7 +46,7 @@ function AppContent() {
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
-  const excludeRectRef = useRef<ExcludeRect>({ x: 0, y: 0, width: 340, height: 320, active: false });
+
 
   // 项目聊天视图分割条状态
   const [projectSplitPercent, setProjectSplitPercent] = useState(67);
@@ -321,17 +321,19 @@ function AppContent() {
           </div>
         </>
       ) : isProjectOverview ? (
-        // 项目展示页：全宽图谱 + 左侧浮动 BizAgent
-        <div className="flex-1 flex min-w-0 bg-main-bg relative">
+        // 项目展示页：左侧图谱 + 右侧固定 BizAgent（和首页一致）
+        <div className="flex-1 flex min-w-0 bg-main-bg">
           <div className="flex-1 flex flex-col min-w-0">
             <div className="h-[52px] shrink-0 flex flex-col justify-center px-5 bg-white/70 backdrop-blur-md z-20">
               <h1 className="text-[13px] font-semibold text-text leading-none tracking-tight">{activeProject?.name}</h1>
               <p className="text-[11px] text-text-muted leading-none mt-1.5">{activeProject?.description}</p>
             </div>
             <div className="flex-1 relative min-h-0">
-              <KnowledgeGraph projectId={activeProjectId} excludeRectRef={excludeRectRef} />
-              <DraggableChat projectId={activeProjectId} rectRef={excludeRectRef} />
+              <KnowledgeGraph projectId={activeProjectId} />
             </div>
+          </div>
+          <div className="w-[360px] shrink-0 p-3 flex flex-col">
+            <DraggableChat projectId={activeProjectId} mode="fixed" />
           </div>
         </div>
       ) : isProjectChat ? (

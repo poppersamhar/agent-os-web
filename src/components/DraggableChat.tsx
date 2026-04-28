@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Plus, ArrowUp, BrainCircuit, GripHorizontal, X } from 'lucide-react';
+import { Plus, Send, BrainCircuit, GripHorizontal, X } from 'lucide-react';
 
 interface Message {
   text: string;
@@ -17,9 +17,10 @@ export interface ExcludeRect {
 interface DraggableChatProps {
   projectId: string;
   rectRef?: React.RefObject<ExcludeRect | null>;
+  mode?: 'floating' | 'fixed';
 }
 
-export default function DraggableChat({ projectId, rectRef }: DraggableChatProps) {
+export default function DraggableChat({ projectId, rectRef, mode = 'floating' }: DraggableChatProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -30,8 +31,11 @@ export default function DraggableChat({ projectId, rectRef }: DraggableChatProps
   const [input, setInput] = useState('');
   const [minimized, setMinimized] = useState(false);
 
-  // 初始化到左侧偏下
+  const isFloating = mode === 'floating';
+
+  // 初始化到左侧偏下（仅浮动模式）
   useEffect(() => {
+    if (!isFloating) return;
     const setCenter = () => {
       const parent = containerRef.current?.parentElement;
       if (!parent) return;
@@ -44,11 +48,11 @@ export default function DraggableChat({ projectId, rectRef }: DraggableChatProps
     setCenter();
     window.addEventListener('resize', setCenter);
     return () => window.removeEventListener('resize', setCenter);
-  }, []);
+  }, [isFloating]);
 
-  // 向外报告当前位置和尺寸
+  // 向外报告当前位置和尺寸（仅浮动模式）
   useEffect(() => {
-    if (!rectRef?.current) return;
+    if (!isFloating || !rectRef?.current) return;
     const el = containerRef.current;
     const h = el ? el.getBoundingClientRect().height : (minimized ? 36 : 280);
     rectRef.current.x = position.x;
@@ -56,7 +60,7 @@ export default function DraggableChat({ projectId, rectRef }: DraggableChatProps
     rectRef.current.width = 340;
     rectRef.current.height = h;
     rectRef.current.active = !minimized;
-  }, [position, minimized, rectRef]);
+  }, [position, minimized, rectRef, isFloating]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -114,6 +118,88 @@ export default function DraggableChat({ projectId, rectRef }: DraggableChatProps
     }, 800);
   };
 
+  // ─── Fixed 模式：右侧固定面板（和首页 BizAgentPanel 一致） ───
+  if (!isFloating) {
+    return (
+      <div ref={containerRef} className="h-full flex flex-col rounded-3xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-primary/20 overflow-hidden">
+        {/* Header */}
+        <div className="h-[52px] flex items-center px-4 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+              <BrainCircuit className="w-[18px] h-[18px] text-primary-dark" strokeWidth={1.8} />
+            </div>
+            <div>
+              <h2 className="font-semibold text-text text-sm tracking-tight">BizAgent</h2>
+              <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-dot" />
+                自管理运行中
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 pb-3 relative">
+          {messages.length === 0 ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+              <BrainCircuit className="w-10 h-10 text-primary/30 mb-4" strokeWidth={1.2} />
+              <h3 className="text-base font-semibold text-text tracking-tight mb-2">
+                关于这个项目，你想问什么
+              </h3>
+              <p className="text-xs text-text-secondary leading-relaxed max-w-[220px]">
+                我可以帮你查找项目文档、分析数据、生成图表
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3 pt-2">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`rounded-2xl px-4 py-2.5 text-xs max-w-[85%] leading-relaxed ${
+                    msg.isUser
+                      ? 'bg-primary-subtle text-primary-dark rounded-tr-sm'
+                      : 'bg-bg text-text-secondary rounded-tl-sm border border-border-light'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Input */}
+        <div className="px-3 pb-3 pt-2 shrink-0">
+          <div className="flex items-end gap-2 bg-white/60 rounded-xl px-3 py-2 shadow-sm focus-within:border-primary/20 focus-within:ring-2 focus-within:ring-primary/5 transition-all border border-transparent">
+            <button className="p-1 text-text-muted hover:text-text transition-colors shrink-0">
+              <Plus className="w-4 h-4" strokeWidth={1.5} />
+            </button>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder="问我关于项目的任何问题..."
+              rows={1}
+              className="flex-1 bg-transparent resize-none outline-none text-xs text-text py-1"
+              style={{ minHeight: '20px' }}
+            />
+            <button
+              onClick={handleSend}
+              className="p-1.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors shrink-0 shadow-sm shadow-primary/20"
+            >
+              <Send className="w-3 h-3" strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Floating 模式：可拖拽浮动框 ───
   if (minimized) {
     return (
       <div
@@ -206,7 +292,7 @@ export default function DraggableChat({ projectId, rectRef }: DraggableChatProps
               onClick={handleSend}
               className="p-1.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors shadow-sm"
             >
-              <ArrowUp className="w-3 h-3" strokeWidth={2} />
+              <Send className="w-3 h-3" strokeWidth={2} />
             </button>
           </div>
         </div>
