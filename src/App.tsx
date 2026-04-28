@@ -305,9 +305,9 @@ function AppContent() {
           </div>
         </>
       ) : isProjectOverview ? (
-        // 项目展示页：全宽图谱 + 右侧浮动 BizAgent（和首页一致）
-        <>
-          <div className="flex-1 flex flex-col min-w-0 bg-main-bg">
+        // 项目展示页：左侧图谱 + 右侧固定 BizAgent（和首页一致）
+        <div className="flex-1 flex min-w-0 bg-main-bg">
+          <div className="flex-1 flex flex-col min-w-0">
             <div className="h-[52px] shrink-0 flex flex-col justify-center px-5 bg-white/70 backdrop-blur-md z-20">
               <h1 className="text-[13px] font-semibold text-text leading-none tracking-tight">{activeProject?.name}</h1>
               <p className="text-[11px] text-text-muted leading-none mt-1.5">{activeProject?.description}</p>
@@ -316,10 +316,10 @@ function AppContent() {
               <KnowledgeGraph projectId={activeProjectId} />
             </div>
           </div>
-          <div className="fixed right-3 top-[60px] bottom-14 w-[360px] z-10">
+          <div className="w-[360px] shrink-0 flex flex-col pt-[60px] pb-14 pr-3">
             <DraggableChat projectId={activeProjectId} mode="fixed" />
           </div>
-        </>
+        </div>
       ) : isProjectChat ? (
         // 项目聊天页：左右分栏（ProjectChat + RightPanel）
         <div ref={projectContainerRef} className="flex-1 flex min-w-0 bg-main-bg">
