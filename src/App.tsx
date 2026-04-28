@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import ProjectChat from './components/ProjectChat';
 import ProjectWizard from './components/ProjectWizard';
-import AgentPage from './components/AgentPage';
+import ToolsPage from './components/ToolsPage';
 import SkillPage from './components/SkillPage';
 import RightPanel from './components/RightPanel';
 import BizAgentPanel from './components/BizAgentPanel';
@@ -13,11 +13,11 @@ import DraggableChat from './components/DraggableChat';
 
 import TaskWizard from './components/TaskWizard';
 import LoginPage from './components/LoginPage';
-import { projects as initialProjects, agents as initialAgents } from './data/mockData';
-import type { Project, Agent } from './data/mockData';
+import { projects as initialProjects } from './data/mockData';
+import type { Project } from './data/mockData';
 
 
-type ViewType = 'home' | 'project' | 'agent' | 'skill';
+type ViewType = 'home' | 'project' | 'tools' | 'skill';
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -38,10 +38,8 @@ function AppContent() {
   const [activeView, setActiveView] = useState<ViewType>('home');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [projectList, setProjectList] = useState<Project[]>(initialProjects);
-  const [agentList, setAgentList] = useState<Agent[]>(initialAgents);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -59,10 +57,10 @@ function AppContent() {
 
   const isProjectOverview = activeView === 'project' && activeProjectId && !activeChatId;
   const isProjectChat = activeView === 'project' && activeProjectId && activeChatId;
-  const isScrollableView = activeView === 'home' || activeView === 'agent' || activeView === 'skill';
+  const isScrollableView = activeView === 'home' || activeView === 'tools' || activeView === 'skill';
 
   // 滚轮切换页面
-  const scrollViews: ViewType[] = ['home', 'agent', 'skill'];
+  const scrollViews: ViewType[] = ['home', 'tools', 'skill'];
   const scrollIndex = scrollViews.indexOf(activeView);
   useEffect(() => {
     let locked = false;
@@ -99,7 +97,6 @@ function AppContent() {
     if (chatId !== undefined) {
       setActiveChatId(chatId);
     }
-    if (view !== 'agent') setSelectedAgentId(null);
     if (view !== 'skill') setSelectedSkillId(null);
   };
 
@@ -121,10 +118,6 @@ function AppContent() {
     setActiveChatId(null); // 新建项目显示项目展示页（图谱）
     setActiveView('project');
     setShowProjectModal(false);
-  };
-
-  const handleCreateAgent = (agent: Agent) => {
-    setAgentList(prev => [...prev, agent]);
   };
 
   const handleEditProject = (projectId: string, name: string) => {
@@ -293,14 +286,7 @@ function AppContent() {
               >
                 <div data-scrollable className="h-full overflow-y-auto pr-[372px]">
                   {view === 'home' && <Dashboard />}
-                  {view === 'agent' && (
-                    <AgentPage
-                      agents={agentList}
-                      selectedAgentId={selectedAgentId}
-                      onSelectAgent={setSelectedAgentId}
-                      onCreateAgent={handleCreateAgent}
-                    />
-                  )}
+                  {view === 'tools' && <ToolsPage />}
                   {view === 'skill' && (
                     <SkillPage
                       selectedSkillId={selectedSkillId}
@@ -314,9 +300,7 @@ function AppContent() {
           <div className="fixed right-3 top-[60px] bottom-14 w-[360px] z-10">
             <BizAgentPanel
               activeView={activeView}
-              selectedAgentId={activeView === 'agent' ? selectedAgentId : null}
               selectedSkillId={activeView === 'skill' ? selectedSkillId : null}
-              agents={agentList}
             />
           </div>
         </>

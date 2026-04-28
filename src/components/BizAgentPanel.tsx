@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
-  Send, BrainCircuit, Sparkles, Bot, Wrench, AtSign, CheckCircle2,
+  Send, BrainCircuit, Sparkles, Wrench, CheckCircle2,
   Database, Terminal, Search, BarChart3, MessageSquare,
   ClipboardList, Mail, FileText,
 } from 'lucide-react';
 import { skills } from '../data/mockData';
-import type { Agent, Skill } from '../data/mockData';
+import type { Skill } from '../data/mockData';
 
 const skillIconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   's1': Database, 's2': Terminal, 's3': Search, 's4': BarChart3,
@@ -14,9 +14,7 @@ const skillIconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElem
 
 interface BizAgentPanelProps {
   activeView: string;
-  selectedAgentId?: string | null;
   selectedSkillId?: string | null;
-  agents?: Agent[];
 }
 
 /* ─── Skill 详情子组件 ─── */
@@ -89,28 +87,12 @@ function SkillDetailPanel({ skill }: { skill: Skill }) {
 }
 
 /* ─── 主组件 ─── */
-export default function BizAgentPanel({ activeView, selectedAgentId, selectedSkillId, agents = [] }: BizAgentPanelProps) {
+export default function BizAgentPanel({ activeView, selectedSkillId }: BizAgentPanelProps) {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const selectedAgent = selectedAgentId ? agents.find(a => a.id === selectedAgentId) : null;
   const selectedSkill = selectedSkillId ? skills.find(s => s.id === selectedSkillId) : null;
-
-  // 选中 Agent 时自动填入 @mention
-  useEffect(() => {
-    if (selectedAgent && activeView === 'agent') {
-      const mention = `@${selectedAgent.name} `;
-      setInput(mention);
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          const len = mention.length;
-          textareaRef.current.setSelectionRange(len, len);
-        }
-      }, 50);
-    }
-  }, [selectedAgentId, activeView]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -120,7 +102,6 @@ export default function BizAgentPanel({ activeView, selectedAgentId, selectedSki
 
   // 输入框 placeholder 根据上下文变化
   const getPlaceholder = () => {
-    if (activeView === 'agent' && selectedAgent) return `输入针对 @${selectedAgent.name} 的指令...`;
     if (activeView === 'skill' && selectedSkill) return `输入针对 ${selectedSkill.name} 的指令...`;
     return '问我任何问题...';
   };
@@ -173,40 +154,16 @@ export default function BizAgentPanel({ activeView, selectedAgentId, selectedSki
           </div>
         )}
 
-        {/* ── Agent 视图 ── */}
-        {activeView === 'agent' && !selectedAgent && messages.length === 0 && (
+        {/* ── Tools 视图 ── */}
+        {activeView === 'tools' && messages.length === 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <Bot className="w-10 h-10 text-primary/30 mb-4" strokeWidth={1.2} />
+            <Sparkles className="w-10 h-10 text-primary/30 mb-4" strokeWidth={1.2} />
             <h3 className="text-base font-semibold text-text tracking-tight mb-2">
-              选择数字员工
+              连接你的工具
             </h3>
             <p className="text-xs text-text-secondary leading-relaxed max-w-[220px]">
-              点击左侧卡片，即可@该员工并发送指令
+              配置 MCP 连接器后，Agent 可以直接访问你的业务数据
             </p>
-          </div>
-        )}
-
-        {/* Agent 对话模式（选中 Agent 后） */}
-        {activeView === 'agent' && selectedAgent && (
-          <div className="space-y-3 pt-2">
-            {/* @提示 */}
-            {messages.length === 0 && (
-              <div className="flex items-center gap-2 text-xs text-text-muted mb-3">
-                <AtSign className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
-                <span>已选中 <span className="text-text font-medium">{selectedAgent.name}</span>，直接输入指令即可</span>
-              </div>
-            )}
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
-                <div className={`rounded-2xl px-4 py-2.5 text-xs max-w-[85%] ${
-                  msg.isUser
-                    ? 'bg-primary-subtle text-primary-dark rounded-tr-sm'
-                    : 'bg-bg text-text-secondary rounded-tl-sm border border-border-light'
-                }`}>
-                  {msg.text}
-                </div>
-              </div>
-            ))}
           </div>
         )}
 

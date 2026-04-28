@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-  Home, Bot, Wrench, Plus, User,
+  Home, Plug, Wrench, Plus, User,
   LogOut, Settings, HelpCircle, Shield, Moon, Check,
   ChevronLeft, ChevronRight,
   Folder, Briefcase, Target, Rocket, Globe, Zap,
@@ -31,7 +31,7 @@ interface SidebarProps {
 
 const navItems = [
   { key: 'home', label: '主页', icon: Home },
-  { key: 'agent', label: '数字员工', icon: Bot },
+  { key: 'tools', label: '工具与连接', icon: Plug },
   { key: 'skill', label: 'Skills', icon: Wrench },
 ];
 
